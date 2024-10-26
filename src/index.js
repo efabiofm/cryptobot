@@ -8,7 +8,7 @@ import {
 } from './util/index.js';
 
 const symbol = 'BTCUSDT';
-const interval = '1m';
+const interval = '15m';
 
 const { altos, bajos, cierres } = await cargarDatosHistoricos({ symbol, interval });
 
