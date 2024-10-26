@@ -4,7 +4,7 @@
   "description": "Yet another crypto trading bot",
   "main": "src/index.js",
   "scripts": {
-    "start": "node --experimental-specifier-resolution=node -r dotenv/config src/index.js",
+    "start": "node -r dotenv/config src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "type": "module",

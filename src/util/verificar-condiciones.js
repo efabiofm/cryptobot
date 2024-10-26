@@ -1,5 +1,5 @@
-import obtenerStopLoss from './obtener-stop-loss';
-import calcularCantidadInvertir from './calcular-cantidad-invertir';
+import obtenerStopLoss from './obtener-stop-loss.js';
+import calcularCantidadInvertir from './calcular-cantidad-invertir.js';
 
 export default function verificarCondiciones({
   cierres,

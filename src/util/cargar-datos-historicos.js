@@ -1,4 +1,4 @@
-import Binance from '../services/binance';
+import Binance from '../services/binance.js';
 
 export default async function cargarDatosHistoricos({ symbol, interval }) {
   const altos = [];

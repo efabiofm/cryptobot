@@ -1,14 +1,14 @@
-import Binance from './services/binance';
+import Binance from './services/binance.js';
 import {
   calcularIndicadores,
   cargarDatosHistoricos,
   enviarNotificacion,
   imprimirIndicadores,
   verificarCondiciones,
-} from './util';
+} from './util/index.js';
 
 const symbol = 'BTCUSDT';
-const interval = '15m';
+const interval = '1m';
 
 const { altos, bajos, cierres } = await cargarDatosHistoricos({ symbol, interval });
 

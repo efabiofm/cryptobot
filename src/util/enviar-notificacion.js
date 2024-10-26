@@ -13,6 +13,6 @@ export default function enviarNotificacion({
   const mensaje = `Precio Entrada: ${entryPrice}
 Stop-Loss: ${stopLoss}
 Take-Profit: ${takeProfit}
-Tamaño Orden: ${lotSize.toFixed(2)} USDT`;
+Tamaño Orden: ${lotSize} USDT`;
   pusher.note(null, titulo, mensaje);
 }
