@@ -15,6 +15,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "pushbullet": "^3.0.0",
+    "tail": "^2.2.6",
     "technicalindicators": "^3.1.0"
   },
   "devDependencies": {

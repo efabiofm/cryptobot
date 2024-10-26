@@ -1,5 +1,6 @@
 import Binance from './services/binance.js';
 import * as Util from './util/index.js';
+import './services/express.js';
 
 const symbol = 'BTCUSDT';
 const interval = '15m';
@@ -22,4 +23,4 @@ Binance.ws.candles(symbol, interval, (candle) => {
   }
 });
 
-console.log(`Señales de entrada de ${interval} para ${symbol}...`);
+console.log(`Enviando señales de ${interval} para ${symbol}...`);
