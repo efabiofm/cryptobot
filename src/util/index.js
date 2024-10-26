@@ -3,7 +3,7 @@ import calcularIndicadores from './calcular-indicadores';
 import cargarDatosHistoricos from './cargar-datos-historicos';
 import enviarNotificacion from './enviar-notificacion';
 import imprimirIndicadores from './imprimir-indicadores';
-import obtenerSwing from './obtener-swing';
+import obtenerStopLoss from './obtener-stop-loss';
 import verificarCondiciones from './verificar-condiciones';
 
 export {
@@ -12,6 +12,6 @@ export {
   cargarDatosHistoricos,
   enviarNotificacion,
   imprimirIndicadores,
-  obtenerSwing,
+  obtenerStopLoss,
   verificarCondiciones
 };

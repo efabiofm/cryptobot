@@ -1,4 +1,4 @@
-import obtenerSwing from './obtener-swing';
+import obtenerStopLoss from './obtener-stop-loss';
 import calcularCantidadInvertir from './calcular-cantidad-invertir';
 
 export default function verificarCondiciones({
@@ -21,7 +21,12 @@ export default function verificarCondiciones({
   ) {
     signalType = 'BUY';
     entryPrice = cierreActual;
-    stopLoss = obtenerSwing(bajos, 'low');
+    stopLoss = obtenerStopLoss({
+      array: bajos,
+      tipo: 'low',
+      bollingerMiddle: bollingerBands.middle,
+      cierres
+    });
     takeProfit = entryPrice + (entryPrice - stopLoss) * rewardRiskRatio;
     lotSize = calcularCantidadInvertir(entryPrice, stopLoss);
   }
@@ -34,7 +39,12 @@ export default function verificarCondiciones({
   ) {
     signalType = 'SELL';
     entryPrice = cierreActual;
-    stopLoss = obtenerSwing(altos, 'high');
+    stopLoss = obtenerStopLoss({
+      array: altos,
+      tipo: 'high',
+      bollingerMiddle: bollingerBands.middle,
+      cierres
+    });
     takeProfit = entryPrice - (stopLoss - entryPrice) * rewardRiskRatio;
     lotSize = calcularCantidadInvertir(entryPrice, stopLoss);
   }
