@@ -1,23 +1,23 @@
 import obtenerSwing from './obtener-swing';
 import calcularCantidadInvertir from './calcular-cantidad-invertir';
 
-export default function verificarCondiciones(
+export default function verificarCondiciones({
   cierres,
   altos,
   bajos,
-  ultimaBollinger,
-  ultimoRSI,
-  ultimoADX
-) {
+  bollingerBands,
+  rsi,
+  adx
+}) {
   const rewardRiskRatio = 1.5;
   const cierreActual = cierres[cierres.length - 1];
   let entryPrice, stopLoss, takeProfit, lotSize, signalType;
 
   // Condiciones para BUY
   if (
-    ultimoADX.adx > 25 &&
-    ultimoRSI >= 60 && ultimoRSI <= 70 &&
-    cierreActual > ultimaBollinger.upper
+    adx > 25 &&
+    rsi >= 60 && rsi <= 70 &&
+    cierreActual > bollingerBands.upper
   ) {
     signalType = 'BUY';
     entryPrice = cierreActual;
@@ -28,9 +28,9 @@ export default function verificarCondiciones(
 
   // Condiciones para SELL
   if (
-    ultimoADX.adx > 25 &&
-    ultimoRSI <= 30 && ultimoRSI >= 20 &&
-    cierreActual < ultimaBollinger.lower
+    adx > 25 &&
+    rsi <= 30 && rsi >= 20 &&
+    cierreActual < bollingerBands.lower
   ) {
     signalType = 'SELL';
     entryPrice = cierreActual;
