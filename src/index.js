@@ -1,16 +1,10 @@
 import Binance from './services/binance.js';
-import {
-  calcularIndicadores,
-  cargarDatosHistoricos,
-  enviarNotificacion,
-  imprimirIndicadores,
-  verificarCondiciones,
-} from './util/index.js';
+import * as Util from './util/index.js';
+import './services/express.js';
 
 const symbol = 'BTCUSDT';
 const interval = '15m';
-
-const { altos, bajos, cierres } = await cargarDatosHistoricos({ symbol, interval });
+const { altos, bajos, cierres } = await Util.cargarDatosHistoricos({ symbol, interval });
 
 Binance.ws.candles(symbol, interval, (candle) => {
   if (candle.isFinal) {
@@ -18,13 +12,13 @@ Binance.ws.candles(symbol, interval, (candle) => {
     bajos.push(parseFloat(candle.low));
     cierres.push(parseFloat(candle.close));
 
-    const indicadores = calcularIndicadores({ cierres, altos, bajos }); // adx, bb, rsi
-    const resultado = verificarCondiciones({ cierres, altos, bajos, ...indicadores });
+    const indicadores = Util.calcularIndicadores({ cierres, altos, bajos }); // adx, bb, rsi
+    const resultado = Util.verificarCondiciones({ cierres, altos, bajos, ...indicadores });
 
-    imprimirIndicadores(indicadores);
+    Util.imprimirIndicadores(indicadores);
 
     if (resultado) {
-      enviarNotificacion(resultado);
+      Util.enviarNotificacion(resultado);
     }
   }
 });
