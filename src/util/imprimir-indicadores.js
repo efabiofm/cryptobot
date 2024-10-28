@@ -1,5 +1,7 @@
 export default function imprimirIndicadores({ closePrice, bollingerBands, rsi, adx }) {
+  const hora = new Date().toLocaleString('es-CR', { timeZone: 'America/Costa_Rica' });
   const log = `---------------------------------------
+Hora: ${hora}
 Precio: ${closePrice}
 RSI (14): ${rsi}
 ADX (14): ${adx}

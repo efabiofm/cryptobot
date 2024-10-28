@@ -13,7 +13,8 @@ app.get('/logs', (req, res) => {
     if (err) {
       return res.status(500).send('Error al leer el archivo de logs');
     }
-    res.type('text/plain').send(data);
+    const slicedData = data.slice(-10000);
+    res.type('text/plain').send(slicedData);
   });
 });
 
