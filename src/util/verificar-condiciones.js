@@ -15,7 +15,7 @@ export default function verificarCondiciones({
 
   // Condiciones para BUY
   if (
-    adx > 25 &&
+    adx > 20 &&
     rsi >= 60 && rsi <= 70 &&
     cierreActual > bollingerBands.upper
   ) {
@@ -33,7 +33,7 @@ export default function verificarCondiciones({
 
   // Condiciones para SELL
   if (
-    adx > 25 &&
+    adx > 20 &&
     rsi <= 30 && rsi >= 20 &&
     cierreActual < bollingerBands.lower
   ) {
