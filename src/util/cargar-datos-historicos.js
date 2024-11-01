@@ -4,6 +4,7 @@ export default async function cargarDatosHistoricos({ symbol, interval }) {
   const altos = [];
   const bajos = [];
   const cierres = [];
+  const volumenes = [];
 
   const candles = await Binance.candles({ symbol, interval, limit: 50 });
   
@@ -11,11 +12,13 @@ export default async function cargarDatosHistoricos({ symbol, interval }) {
     altos.push(parseFloat(candle.high));
     bajos.push(parseFloat(candle.low));
     cierres.push(parseFloat(candle.close));
+    volumenes.push(parseFloat(candle.volumne));
   });
 
   return {
     altos,
     bajos,
-    cierres
+    cierres,
+    volumenes
   };
 }

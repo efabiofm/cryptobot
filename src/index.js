@@ -1,21 +1,27 @@
 import Binance from './services/binance.js';
+import * as BBB from './estrategias/bollinger-breakout/index.js';
 import * as Util from './util/index.js';
 import './services/express.js';
 
 const symbol = process.env.SYMBOL || 'BTCUSDT';
 const interval = process.env.INTERVAL || '15m';
-const { altos, bajos, cierres } = await Util.cargarDatosHistoricos({ symbol, interval });
+
+const {
+  altos,
+  bajos,
+  cierres,
+  volumenes
+} = await Util.cargarDatosHistoricos({ symbol, interval });
 
 Binance.ws.candles(symbol, interval, (candle) => {
   if (candle.isFinal) {
     altos.push(parseFloat(candle.high));
     bajos.push(parseFloat(candle.low));
     cierres.push(parseFloat(candle.close));
+    volumenes.push(parseFloat(candle.volume));
 
-    const indicadores = Util.calcularIndicadores({ cierres, altos, bajos }); // adx, bb, rsi
-    const resultado = Util.verificarCondiciones({ cierres, altos, bajos, ...indicadores });
-
-    Util.imprimirIndicadores(indicadores);
+    const indicadores = BBB.calcularIndicadores({ cierres, altos, bajos, volumenes });
+    const resultado = BBB.verificarCondiciones({ cierres, altos, bajos, ...indicadores });
 
     if (resultado) {
       Util.enviarNotificacion(resultado);

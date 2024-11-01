@@ -1,13 +1,17 @@
 import obtenerStopLoss from './obtener-stop-loss.js';
-import calcularCantidadInvertir from './calcular-cantidad-invertir.js';
+import calcularCantidadInvertir from '../../util/calcular-cantidad-invertir.js';
 
 export default function verificarCondiciones({
   cierres,
   altos,
   bajos,
-  bollingerBands,
-  rsi,
-  adx
+  ultimaBollinger,
+  ultimoRSI,
+  ultimoADX,
+  adxAnterior,
+  rsiAnterior,
+  volumenActual,
+  volumenPromedio
 }) {
   const rewardRiskRatio = 1.5;
   const cierreActual = cierres[cierres.length - 1];
@@ -15,16 +19,19 @@ export default function verificarCondiciones({
 
   // Condiciones para BUY
   if (
-    adx > 20 &&
-    rsi >= 60 && rsi <= 70 &&
-    cierreActual > bollingerBands.upper
+    ultimoADX > 20
+    && ultimoADX > adxAnterior
+    && ultimoRSI >= 60 && ultimoRSI <= 70
+    && rsiAnterior < 70
+    && cierreActual > ultimaBollinger.upper
+    // && volumenActual > volumenPromedio
   ) {
     signalType = 'BUY';
     entryPrice = cierreActual;
     stopLoss = obtenerStopLoss({
       array: bajos,
       tipo: 'low',
-      bollingerMiddle: bollingerBands.middle,
+      bollingerMiddle: ultimaBollinger.middle,
       cierres
     });
     takeProfit = entryPrice + (entryPrice - stopLoss) * rewardRiskRatio;
@@ -33,16 +40,19 @@ export default function verificarCondiciones({
 
   // Condiciones para SELL
   if (
-    adx > 20 &&
-    rsi <= 30 && rsi >= 20 &&
-    cierreActual < bollingerBands.lower
+    ultimoADX > 20
+    && ultimoADX > adxAnterior
+    && ultimoRSI <= 30 && ultimoRSI >= 20
+    && rsiAnterior < 30
+    && cierreActual < ultimaBollinger.lower
+    // && volumenActual > volumenPromedio
   ) {
     signalType = 'SELL';
     entryPrice = cierreActual;
     stopLoss = obtenerStopLoss({
       array: altos,
       tipo: 'high',
-      bollingerMiddle: bollingerBands.middle,
+      bollingerMiddle: ultimaBollinger.middle,
       cierres
     });
     takeProfit = entryPrice - (stopLoss - entryPrice) * rewardRiskRatio;
