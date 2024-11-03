@@ -20,11 +20,11 @@ export default function verificarCondiciones({
   // Condiciones para BUY
   if (
     ultimoADX > 20
-    && ultimoADX > adxAnterior
+    // && ultimoADX > adxAnterior
     && ultimoRSI >= 60 && ultimoRSI <= 70
-    && rsiAnterior < 70
+    && rsiAnterior <= 70
     && cierreActual > ultimaBollinger.upper
-    // && volumenActual > volumenPromedio
+    && volumenActual > volumenPromedio
   ) {
     signalType = 'BUY';
     entryPrice = cierreActual;
@@ -41,11 +41,11 @@ export default function verificarCondiciones({
   // Condiciones para SELL
   if (
     ultimoADX > 20
-    && ultimoADX > adxAnterior
-    && ultimoRSI <= 30 && ultimoRSI >= 20
-    && rsiAnterior < 30
+    // && ultimoADX > adxAnterior
+    && ultimoRSI <= 40 && ultimoRSI >= 30
+    && rsiAnterior >= 30
     && cierreActual < ultimaBollinger.lower
-    // && volumenActual > volumenPromedio
+    && volumenActual > volumenPromedio
   ) {
     signalType = 'SELL';
     entryPrice = cierreActual;

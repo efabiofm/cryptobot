@@ -12,7 +12,7 @@ export default async function cargarDatosHistoricos({ symbol, interval }) {
     altos.push(parseFloat(candle.high));
     bajos.push(parseFloat(candle.low));
     cierres.push(parseFloat(candle.close));
-    volumenes.push(parseFloat(candle.volumne));
+    volumenes.push(parseFloat(candle.volume));
   });
 
   return {

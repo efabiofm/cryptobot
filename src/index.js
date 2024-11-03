@@ -1,10 +1,11 @@
 import Binance from './services/binance.js';
-import * as BBB from './estrategias/bollinger-breakout/index.js';
+import bollingerBreakout from './estrategias/bollinger-breakout/index.js';
 import * as Util from './util/index.js';
 import './services/express.js';
 
 const symbol = process.env.SYMBOL || 'BTCUSDT';
 const interval = process.env.INTERVAL || '15m';
+const strategy = process.env.STRATEGY || 'bollinger-breakout';
 
 const {
   altos,
@@ -20,8 +21,18 @@ Binance.ws.candles(symbol, interval, (candle) => {
     cierres.push(parseFloat(candle.close));
     volumenes.push(parseFloat(candle.volume));
 
-    const indicadores = BBB.calcularIndicadores({ cierres, altos, bajos, volumenes });
-    const resultado = BBB.verificarCondiciones({ cierres, altos, bajos, ...indicadores });
+    let resultado;
+
+    switch(strategy) {
+      case 'bollinger-breakout':
+        resultado = bollingerBreakout({ cierres, altos, bajos, volumenes });
+        break;
+      case 'ema-cross':
+        // TBD
+        break;
+      default:
+        console.error('Debe seleccionar una estrategia');
+    }
 
     if (resultado) {
       Util.enviarNotificacion(resultado);
