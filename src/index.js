@@ -5,14 +5,12 @@ import './services/express.js';
 
 const symbol = process.env.SYMBOL;
 const interval = process.env.INTERVAL;
-const strategy = estrategias[process.env.STRATEGY];
+const strategy = process.env.STRATEGY;
 
-const {
-  altos,
-  bajos,
-  cierres,
-  volumenes
-} = await util.cargarDatosHistoricos({ symbol, interval });
+const data = await util.cargarDatosHistoricos({ symbol, interval });
+const estrategia = estrategias[strategy];
+
+const { altos, bajos, cierres, volumenes } = data;
 
 binance.ws.candles(symbol, interval, (candle) => {
   if (candle.isFinal) {
@@ -21,7 +19,7 @@ binance.ws.candles(symbol, interval, (candle) => {
     cierres.push(parseFloat(candle.close));
     volumenes.push(parseFloat(candle.volume));
 
-    const resultado = strategy({ cierres, altos, bajos, volumenes });
+    const resultado = estrategia({ cierres, altos, bajos, volumenes });
 
     if (resultado) {
       util.enviarNotificacion(resultado);
@@ -29,4 +27,4 @@ binance.ws.candles(symbol, interval, (candle) => {
   }
 });
 
-console.log(`Enviando señales de ${interval} para ${symbol}...`);
+console.log(`Symbol: ${symbol} | Interval: ${interval} | Strategy: ${strategy}`);

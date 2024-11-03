@@ -6,7 +6,7 @@ export default async function cargarDatosHistoricos({ symbol, interval }) {
   const cierres = [];
   const volumenes = [];
 
-  const candles = await Binance.candles({ symbol, interval, limit: 50 });
+  const candles = await Binance.candles({ symbol, interval, limit: 200 });
   
   candles.forEach(candle => {
     altos.push(parseFloat(candle.high));

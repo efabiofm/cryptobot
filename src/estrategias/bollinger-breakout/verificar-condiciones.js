@@ -1,5 +1,4 @@
-import obtenerStopLoss from './obtener-stop-loss.js';
-import calcularCantidadInvertir from '../../util/calcular-cantidad-invertir.js';
+import { obtenerStopLoss, calcularCantidadInvertir } from '../../util/index.js';
 
 export default function verificarCondiciones({
   cierres,
@@ -31,8 +30,8 @@ export default function verificarCondiciones({
     stopLoss = obtenerStopLoss({
       array: bajos,
       tipo: 'low',
-      bollingerMiddle: ultimaBollinger.middle,
-      cierres
+      valorReferencia: ultimaBollinger.middle,
+      cierreActual
     });
     takeProfit = entryPrice + (entryPrice - stopLoss) * rewardRiskRatio;
     lotSize = calcularCantidadInvertir(entryPrice, stopLoss);
@@ -52,8 +51,8 @@ export default function verificarCondiciones({
     stopLoss = obtenerStopLoss({
       array: altos,
       tipo: 'high',
-      bollingerMiddle: ultimaBollinger.middle,
-      cierres
+      valorReferencia: ultimaBollinger.middle,
+      cierreActual
     });
     takeProfit = entryPrice - (stopLoss - entryPrice) * rewardRiskRatio;
     lotSize = calcularCantidadInvertir(entryPrice, stopLoss);
