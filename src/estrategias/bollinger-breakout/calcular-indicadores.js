@@ -35,7 +35,7 @@ export default function calcularIndicadores({ cierres, altos, bajos, volumenes }
     const ultimoRSI = rsi[rsi.length - 1];
     const ultimoADX = adx[adx.length - 1];
     const adxAnterior = adx[adx.length - 2] || ultimoADX;
-    const rsiAnterior = rsi[adx.length - 2] || ultimoRSI;
+    const rsiAnterior = rsi[rsi.length - 2] || ultimoRSI;
 
     return {
       precioCierre: cierres[cierres.length - 1],
