@@ -9,7 +9,7 @@ export default function sendNotification({
   takeProfit,
   orderSize 
 }) {
-  const emoji = signalType === 'BUY' ? '📈' : '📉';
+  const emoji = signalType === 'Buy' ? '📈' : '📉';
   const message = `Entry Price: ${entryPrice}
 Take-Profit: ${takeProfit}
 Stop-Loss: ${stopLoss}

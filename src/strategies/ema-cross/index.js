@@ -46,7 +46,7 @@ function emaCross({ closeList, highList, lowList, volumeList }) {
       && prevRSI < 70
       && lastVolume > avgVolume
     ) {
-      signalType = 'BUY';
+      signalType = 'Buy';
       entryPrice = lastPrice;
       stopLoss = getStopLoss({
         array: lowList,
@@ -65,7 +65,7 @@ function emaCross({ closeList, highList, lowList, volumeList }) {
       && prevRSI > 30
       && lastVolume > avgVolume
     ) {
-      signalType = 'SELL';
+      signalType = 'Sell';
       entryPrice = lastPrice;
       stopLoss = getStopLoss({
         array: highList,

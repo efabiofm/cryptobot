@@ -48,7 +48,7 @@ function bollingerBreakout({ closeList, highList, lowList, volumeList }) {
       && lastPrice > lastBollinger.upper
       && lastVolume > avgVolume
     ) {
-      signalType = 'BUY';
+      signalType = 'Buy';
       entryPrice = lastPrice;
       stopLoss = getStopLoss({
         array: lowList,
@@ -69,7 +69,7 @@ function bollingerBreakout({ closeList, highList, lowList, volumeList }) {
       && lastPrice < lastBollinger.lower
       && lastVolume > avgVolume
     ) {
-      signalType = 'SELL';
+      signalType = 'Sell';
       entryPrice = lastPrice;
       stopLoss = getStopLoss({
         array: highList,

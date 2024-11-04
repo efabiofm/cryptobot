@@ -3,11 +3,13 @@ import getDataHistory from './get-data-history.js';
 import sendNotification from './send-nofitication.js';
 import getSwing from './get-swing.js';
 import getStopLoss from './get-stop-loss.js';
+import submitOrder from './submit-order.js';
 
 export {
   getOrderSize,
   getDataHistory,
   sendNotification,
   getSwing,
-  getStopLoss
+  getStopLoss,
+  submitOrder
 };
