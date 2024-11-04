@@ -1,4 +1,6 @@
-import binance from './services/binance.js';
+import Binance from './services/binance.js';
+import Bybit from './services/bybit.js';
+import get from 'lodash/get.js';
 import * as estrategias from './estrategias/index.js';
 import * as util from './util/index.js';
 import './services/express.js';
@@ -8,12 +10,14 @@ const interval = process.env.INTERVAL;
 const strategy = process.env.STRATEGY;
 
 const data = await util.cargarDatosHistoricos({ symbol, interval });
+const { altos, bajos, cierres, volumenes } = data;
 const estrategia = estrategias[strategy];
 
-const { altos, bajos, cierres, volumenes } = data;
+const watchCandles = process.env.TESTNET === 'true' ? Bybit.ws.update : Binance.ws.candles;
 
-binance.ws.candles(symbol, interval, (candle) => {
-  if (candle.isFinal) {
+watchCandles(symbol, interval, (value) => {
+  const candle = get(value, 'data[0]', value);
+  if (candle.isFinal || candle.confirm) {
     altos.push(parseFloat(candle.high));
     bajos.push(parseFloat(candle.low));
     cierres.push(parseFloat(candle.close));

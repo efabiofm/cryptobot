@@ -6,6 +6,7 @@ export default function imprimirIndicadores({
   adxAnterior,
   ultimoADX,
   volumenActual,
+  volumenPromedio,
   signalType,
   entryPrice,
   stopLoss,
@@ -20,7 +21,8 @@ RSI (ultimo): ${ultimoRSI}
 RSI (anterior): ${rsiAnterior}
 ADX (ultimo): ${ultimoADX}
 ADX (anterior): ${adxAnterior}
-Volumen: ${volumenActual}
+Volumen (actual): ${volumenActual}
+Volumen (promedio): ${volumenPromedio}
 Bollinger Bands:
 ├─ Upper: ${ultimaBollinger.upper}
 ├─ Middle: ${ultimaBollinger.middle}

@@ -93,6 +93,7 @@ function bollingerBreakout({ cierres, altos, bajos, volumenes }) {
       adxAnterior,
       ultimoADX,
       volumenActual,
+      volumenPromedio,
       signalType,
       entryPrice,
       stopLoss,
