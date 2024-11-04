@@ -1,11 +1,11 @@
 import Binance from '../services/binance.js';
 import Bybit from '../services/bybit.js';
 
-async function cargarDatosHistoricos({ symbol, interval }) {
-  const altos = [];
-  const bajos = [];
-  const cierres = [];
-  const volumenes = [];
+async function getDataHistory({ symbol, interval }) {
+  const lowList = [];
+  const highList = [];
+  const closeList = [];
+  const volumeList = [];
 
   if (process.env.TESTNET === 'true') {
     const { result } = await Bybit.getKline({ symbol, interval, limit: 200 });
@@ -21,27 +21,27 @@ async function cargarDatosHistoricos({ symbol, interval }) {
      * list[6]: turnover
      */
     result.list.forEach(candle => {
-      altos.push(parseFloat(candle[2]));
-      bajos.push(parseFloat(candle[3]));
-      cierres.push(parseFloat(candle[4]));
-      volumenes.push(parseFloat(candle[5]));
+      lowList.push(parseFloat(candle[2]));
+      highList.push(parseFloat(candle[3]));
+      closeList.push(parseFloat(candle[4]));
+      volumeList.push(parseFloat(candle[5]));
     });
   } else {
     const candles = await Binance.candles({ symbol, interval, limit: 200 });
     candles.forEach(candle => {
-      altos.push(parseFloat(candle.high));
-      bajos.push(parseFloat(candle.low));
-      cierres.push(parseFloat(candle.close));
-      volumenes.push(parseFloat(candle.volume));
+      lowList.push(parseFloat(candle.high));
+      highList.push(parseFloat(candle.low));
+      closeList.push(parseFloat(candle.close));
+      volumeList.push(parseFloat(candle.volume));
     });
   }
 
   return {
-    altos,
-    bajos,
-    cierres,
-    volumenes
+    lowList,
+    highList,
+    closeList,
+    volumeList
   };
 }
 
-export default cargarDatosHistoricos;
+export default getDataHistory;

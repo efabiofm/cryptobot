@@ -16,7 +16,7 @@ app.get('/', (req, res) => {
 app.get('/logs', (req, res) => {
   fs.readFile(process.env.LOG_PATH, 'utf8', (err, data) => {
     if (err) {
-      return res.status(500).send('Error al leer el archivo de logs');
+      return res.status(500).send(err);
     }
     const slicedData = data.slice(-10000);
     res.type('text/plain').send(slicedData);

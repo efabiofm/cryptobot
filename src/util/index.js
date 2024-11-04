@@ -1,13 +1,13 @@
-import calcularCantidadInvertir from './calcular-cantidad-invertir.js';
-import cargarDatosHistoricos from './cargar-datos-historicos.js';
-import enviarNotificacion from './enviar-notificacion.js';
-import obtenerSwing from './obtener-swing.js';
-import obtenerStopLoss from './obtener-stop-loss.js';
+import getOrderSize from './get-order-size.js';
+import getDataHistory from './get-data-history.js';
+import sendNotification from './send-nofitication.js';
+import getSwing from './get-swing.js';
+import getStopLoss from './get-stop-loss.js';
 
 export {
-  calcularCantidadInvertir,
-  cargarDatosHistoricos,
-  enviarNotificacion,
-  obtenerSwing,
-  obtenerStopLoss
+  getOrderSize,
+  getDataHistory,
+  sendNotification,
+  getSwing,
+  getStopLoss
 };
