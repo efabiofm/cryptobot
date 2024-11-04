@@ -1,11 +1,16 @@
 import express from 'express';
 import fs from 'fs';
+import startCase from 'lodash/startCase.js';
 
 const app = express();
 const port = process.env.PORT || 3001;
 
 app.get('/', (req, res) => {
-  res.send('Cryptobot v1.0.0');
+  res.send(`Cryptobot v1.0.0
+<br>---------------------
+<br>Symbol: ${process.env.SYMBOL.replace('USDT', '/USDT')}
+<br>Interval: ${process.env.INTERVAL}
+<br>Strategy: ${startCase(process.env.STRATEGY)}`);
 });
 
 app.get('/logs', (req, res) => {

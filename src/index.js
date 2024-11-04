@@ -26,5 +26,3 @@ binance.ws.candles(symbol, interval, (candle) => {
     }
   }
 });
-
-console.log(`Symbol: ${symbol} | Interval: ${interval} | Strategy: ${strategy}`);

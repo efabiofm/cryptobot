@@ -1,13 +1,36 @@
-export default function imprimirIndicadores({ closePrice, bollingerBands, rsi, adx }) {
+export default function imprimirIndicadores({
+  cierreActual,
+  ultimaBollinger,
+  rsiAnterior,
+  ultimoRSI,
+  adxAnterior,
+  ultimoADX,
+  volumenActual,
+  signalType,
+  entryPrice,
+  stopLoss,
+  takeProfit,
+  lotSize
+}) {
   const hora = new Date().toLocaleString('es-CR', { timeZone: 'America/Costa_Rica' });
-  const log = `---------------------------------------
+  let log = `---------------------------------------
 Hora: ${hora}
-Precio: ${closePrice}
-RSI (14): ${rsi}
-ADX (14): ${adx}
-Bollinger Bands (20, 2):
-├─ Upper: ${bollingerBands.upper}
-├─ Middle: ${bollingerBands.middle}
-└─ Lower: ${bollingerBands.lower}`;
+Precio: ${cierreActual}
+RSI (ultimo): ${ultimoRSI}
+RSI (anterior): ${rsiAnterior}
+ADX (ultimo): ${ultimoADX}
+ADX (anterior): ${adxAnterior}
+Volumen: ${volumenActual}
+Bollinger Bands:
+├─ Upper: ${ultimaBollinger.upper}
+├─ Middle: ${ultimaBollinger.middle}
+└─ Lower: ${ultimaBollinger.lower}`;
+  if (signalType) {
+    log += `Señal: ${signalType}
+├─ Precio: ${entryPrice}
+├─ Stop-loss: ${stopLoss}
+├─ Take-profit: ${takeProfit}
+└─ Tamaño: ${lotSize}`;
+  }
   console.log(log);
 }
