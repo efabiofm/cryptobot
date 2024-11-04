@@ -1,4 +1,4 @@
-import { RestClientV5, WebsocketClient   } from 'bybit-api';
+import { RestClientV5, WebsocketClient } from 'bybit-api';
 
 const testnet = process.env.TESTNET === 'true';
 let Bybit;

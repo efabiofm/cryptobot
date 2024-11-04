@@ -52,8 +52,8 @@ function bollingerBreakout({ closeList, highList, lowList, volumeList }) {
       entryPrice = lastPrice;
       stopLoss = getStopLoss({
         array: lowList,
-        tipo: 'low',
-        valorReferencia: lastBollinger.middle,
+        type: 'low',
+        reference: lastBollinger.middle,
         lastPrice
       });
       takeProfit = entryPrice + (entryPrice - stopLoss) * rewardRiskRatio;
@@ -73,8 +73,8 @@ function bollingerBreakout({ closeList, highList, lowList, volumeList }) {
       entryPrice = lastPrice;
       stopLoss = getStopLoss({
         array: highList,
-        tipo: 'high',
-        valorReferencia: lastBollinger.middle,
+        type: 'high',
+        reference: lastBollinger.middle,
         lastPrice
       });
       takeProfit = entryPrice - (stopLoss - entryPrice) * rewardRiskRatio;

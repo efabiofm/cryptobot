@@ -7,14 +7,15 @@ import './services/express.js';
 
 const symbol = process.env.SYMBOL;
 const interval = process.env.INTERVAL;
+const testnet = process.env.TESTNET === 'true';
 const strategy = strategies[process.env.STRATEGY];
 
 const data = await util.getDataHistory({ symbol, interval });
 const { highList, lowList, closeList, volumeList } = data;
 
-const watchCandles = process.env.TESTNET === 'true' ? Bybit.ws.update : Binance.ws.candles;
+const watchCandles = testnet ? Bybit.ws.update : Binance.ws.candles;
 
-watchCandles(symbol, interval, (value) => {
+watchCandles(symbol, interval, async (value) => {
   const candle = get(value, 'data[0]', value);
   if (candle.isFinal || candle.confirm) {
     highList.push(parseFloat(candle.high));
@@ -24,7 +25,12 @@ watchCandles(symbol, interval, (value) => {
 
     const result = strategy({ closeList, highList, lowList, volumeList });
 
-    if (result) {
+    if (!result) return;
+    
+    if (testnet) {
+      const response = await util.submitOrder(result);
+      console.log(response);
+    } else {
       util.sendNotification(result);
     }
   }

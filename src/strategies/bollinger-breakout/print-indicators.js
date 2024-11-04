@@ -7,7 +7,7 @@ export default function imprimirIndicadores({
   signalType,
   stopLoss,
   takeProfit,
-  lotSize
+  orderSize
 }) {
   const hora = new Date().toLocaleString('es-CR', { timeZone: 'America/Costa_Rica' });
   let log = `---------------------------------------
@@ -25,7 +25,7 @@ Bollinger Bands:
 ├─ Price: ${lastPrice}
 ├─ Stop-loss: ${stopLoss}
 ├─ Take-profit: ${takeProfit}
-└─ Size: ${lotSize}`;
+└─ Size: ${orderSize}`;
   }
   console.log(log);
 }

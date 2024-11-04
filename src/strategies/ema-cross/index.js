@@ -50,7 +50,7 @@ function emaCross({ closeList, highList, lowList, volumeList }) {
       entryPrice = lastPrice;
       stopLoss = getStopLoss({
         array: lowList,
-        tipo: 'low',
+        type: 'low',
         reference: lastEMA200,
         lastPrice
       });
@@ -69,7 +69,7 @@ function emaCross({ closeList, highList, lowList, volumeList }) {
       entryPrice = lastPrice;
       stopLoss = getStopLoss({
         array: highList,
-        tipo: 'high',
+        type: 'high',
         reference: lastEMA200,
         lastPrice
       });
