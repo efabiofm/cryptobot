@@ -63,7 +63,7 @@ function emaCross({ closeList, highList, lowList, volumeList }) {
 
     // SELL
     if (lastEMA9 < lastEMA21
-      && prevEMA9 < prevEMA21
+      && prevEMA9 > prevEMA21
       && lastPrice < lastEMA200
       && lastRSI > 30
       && prevRSI > 30
@@ -77,7 +77,7 @@ function emaCross({ closeList, highList, lowList, volumeList }) {
         reference: lastEMA200,
         lastPrice
       });
-      takeProfit = entryPrice - (entryPrice - stopLoss) * rewardRiskRatio;
+      takeProfit = entryPrice - (stopLoss - entryPrice) * rewardRiskRatio;
       orderSize = getOrderSize(entryPrice, stopLoss);
     }
 
