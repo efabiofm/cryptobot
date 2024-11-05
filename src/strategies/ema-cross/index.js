@@ -1,5 +1,5 @@
 import TI from 'technicalindicators';
-import { getOrderSize, getStopLoss } from '../../util/index.js';
+import { getOrderSize, getStopLoss, printIndicators } from '../../util/index.js';
 
 const rsiPeriod = 14;
 const avgVolumePeriod = 20;
@@ -80,6 +80,24 @@ function emaCross({ closeList, highList, lowList, volumeList }) {
       takeProfit = entryPrice - (stopLoss - entryPrice) * rewardRiskRatio;
       orderSize = getOrderSize(entryPrice, stopLoss);
     }
+    
+    printIndicators({
+      lastPrice,
+      lastVolume,
+      avgVolume,
+      lastRSI,
+      lastEMA9,
+      lastEMA21,
+      lastEMA200,
+      prevEMA9,
+      prevEMA21,
+      prevRSI,
+      signalType,
+      entryPrice,
+      stopLoss,
+      takeProfit,
+      orderSize
+    });
 
     if (signalType) {
       return {

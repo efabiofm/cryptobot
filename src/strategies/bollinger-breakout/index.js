@@ -1,6 +1,5 @@
 import TI from 'technicalindicators';
-import printIndicators from './print-indicators.js';
-import { getOrderSize, getStopLoss } from '../../util/index.js';
+import { getOrderSize, getStopLoss, printIndicators } from '../../util/index.js';
 
 const rsiPeriod = 14;
 const adxPeriod = 14;
@@ -87,6 +86,9 @@ function bollingerBreakout({ closeList, highList, lowList, volumeList }) {
       lastRSI,
       lastADX,
       lastVolume,
+      prevRSI,
+      prevADX,
+      avgVolume,
       signalType,
       stopLoss,
       takeProfit,

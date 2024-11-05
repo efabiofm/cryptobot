@@ -6,7 +6,7 @@ const app = express();
 const port = process.env.PORT || 3001;
 
 app.get('/', (req, res) => {
-  res.send(`Cryptobot v1.0.0
+  res.send(`Cryptobot v1.1.1
 <br>---------------------
 <br>Symbol: ${process.env.SYMBOL.replace('USDT', '/USDT')}
 <br>Interval: ${process.env.INTERVAL}
@@ -14,7 +14,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/logs', (req, res) => {
-  fs.readFile(process.env.LOG_PATH, 'utf8', (err, data) => {
+  fs.readFile(process.env.LOG_FILE_PATH, 'utf8', (err, data) => {
     if (err) {
       return res.status(500).send(err);
     }

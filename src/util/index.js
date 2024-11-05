@@ -4,6 +4,7 @@ import sendNotification from './send-nofitication.js';
 import getSwing from './get-swing.js';
 import getStopLoss from './get-stop-loss.js';
 import submitOrder from './submit-order.js';
+import printIndicators from './print-indicators.js';
 
 export {
   getOrderSize,
@@ -11,5 +12,6 @@ export {
   sendNotification,
   getSwing,
   getStopLoss,
-  submitOrder
+  submitOrder,
+  printIndicators
 };
