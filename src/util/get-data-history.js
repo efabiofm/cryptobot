@@ -7,7 +7,7 @@ async function getDataHistory({ symbol, interval }) {
   const closeList = [];
   const volumeList = [];
 
-  if (process.env.TESTNET === 'true') {
+  if (process.env.DEMO_TRADING === 'true') {
     const { result } = await Bybit.getKline({ symbol, interval, limit: 200 });
     /**
      * OHLC candle used by v5 APIs

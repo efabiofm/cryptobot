@@ -7,13 +7,13 @@ import './services/express.js';
 
 const symbol = process.env.SYMBOL;
 const interval = process.env.INTERVAL;
-const testnet = process.env.TESTNET === 'true';
+const demoTrading = process.env.DEMO_TRADING === 'true';
 const strategy = strategies[process.env.STRATEGY];
 
 const data = await util.getDataHistory({ symbol, interval });
 const { highList, lowList, closeList, volumeList } = data;
 
-const watchCandles = testnet ? Bybit.ws.update : Binance.ws.candles;
+const watchCandles = demoTrading ? Bybit.ws.update : Binance.ws.candles;
 
 watchCandles(symbol, interval, async (value) => {
   const candle = get(value, 'data[0]', value);
@@ -27,7 +27,7 @@ watchCandles(symbol, interval, async (value) => {
 
     if (!result) return;
     
-    if (testnet) {
+    if (demoTrading) {
       const response = await util.submitOrder(result);
       console.log(response);
     } else {

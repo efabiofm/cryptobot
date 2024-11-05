@@ -5,12 +5,10 @@ export default async function submitOrder({ orderSize, entryPrice, signalType, t
     symbol: process.env.SYMBOL,
     category: 'linear',
     orderType: 'Market',
-    qty: (orderSize / entryPrice).toFixed(),
-    takeProfit: takeProfit.toFixed(),
-    stopLoss: stopLoss.toFixed(),
+    qty: (orderSize / entryPrice).toFixed(3),
+    takeProfit: takeProfit.toFixed(3),
+    stopLoss: stopLoss.toFixed(3),
     side: signalType,
   };
-  console.log('entry:', entryPrice);
-  console.log(orderParams);
   return Bybit.submitOrder(orderParams);
 }
