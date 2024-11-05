@@ -3,7 +3,7 @@ import { RestClientV5, WebsocketClient } from 'bybit-api';
 const demoTrading = process.env.DEMO_TRADING === 'true';
 let Bybit;
 
-if (testnet) {
+if (demoTrading) {
   Bybit = new RestClientV5 ({
     key: process.env.BYBIT_API_KEY,
     secret: process.env.BYBIT_API_SECRET,
@@ -13,7 +13,6 @@ if (testnet) {
   const ws = new WebsocketClient({
     key: process.env.BYBIT_API_KEY,
     secret: process.env.BYBIT_API_SECRET,
-    demoTrading,
     market: 'v5'
   });
   

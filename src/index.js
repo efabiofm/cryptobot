@@ -25,13 +25,11 @@ watchCandles(symbol, interval, async (value) => {
 
     const result = strategy({ closeList, highList, lowList, volumeList });
 
-    if (!result) return;
-    
+    if (!result) return;    
     if (demoTrading) {
       const response = await util.submitOrder(result);
       console.log(response);
-    } else {
-      util.sendNotification(result);
     }
+    util.sendNotification(result);
   }
 });

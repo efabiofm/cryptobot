@@ -35,12 +35,15 @@ function emaCross({ closeList, highList, lowList, volumeList }) {
     const lastVolume = volumeList[volumeList.length - 1];
     const lastRSI = rsi[rsi.length - 1];
     const lastEMA9 = ema9[ema9.length - 1];
+    const prevEMA9 = ema9[ema9.length - 2];
     const lastEMA21 = ema21[ema21.length - 1];
+    const prevEMA21 = ema21[ema21.length - 2];
     const lastEMA200 = ema200[ema200.length - 1];
     const prevRSI = rsi[rsi.length - 2] || lastRSI;
 
     // BUY
     if (lastEMA9 > lastEMA21
+      && prevEMA9 < prevEMA21
       && lastPrice > lastEMA200
       && lastRSI < 70
       && prevRSI < 70
@@ -60,6 +63,7 @@ function emaCross({ closeList, highList, lowList, volumeList }) {
 
     // SELL
     if (lastEMA9 < lastEMA21
+      && prevEMA9 < prevEMA21
       && lastPrice < lastEMA200
       && lastRSI > 30
       && prevRSI > 30
