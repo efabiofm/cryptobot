@@ -1,2 +1,4 @@
 node_modules
 .env
+historical-data.json
+trade-log.csv
