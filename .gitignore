@@ -1,4 +1,4 @@
 node_modules
 .env
-historical-data.json
+historical-data*.json
 trade-log.csv

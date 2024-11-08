@@ -5,7 +5,7 @@ import path from 'path';
 import { createObjectCsvWriter } from 'csv-writer';
 
 // Función para obtener todas las velas históricas
-async function getAllHistoricalCandles(symbol, interval, startTime, limit = 1000) {
+async function getAllHistoricalCandles(symbol, interval, startTime, endTime, limit = 1000) {
   let allCandles = [];
   let fetchedCandles;
   let currentStartTime = startTime;
@@ -15,6 +15,7 @@ async function getAllHistoricalCandles(symbol, interval, startTime, limit = 1000
       symbol,
       interval,
       startTime: currentStartTime,
+      endTime,
       limit,
     });
 
@@ -23,7 +24,7 @@ async function getAllHistoricalCandles(symbol, interval, startTime, limit = 1000
       // Actualizar 'startTime' al timestamp de la última vela + 1 ms para evitar solapamientos
       currentStartTime = fetchedCandles[fetchedCandles.length - 1].openTime + 1;
     }
-  } while (fetchedCandles.length === limit);
+  } while (fetchedCandles.length === limit && currentStartTime < endTime);
 
   // Formatear los datos
   return allCandles.map(candle => ({
@@ -55,12 +56,12 @@ function generateSignal(currentIndex, indicators) {
   // Asegurarse de que hay suficientes datos
   if (ema9.length < 2 || ema21.length < 2 || rsi.length < 2) return null;
 
-  const previousEMA9 = ema9[ema9.length - 2];
-  const previousEMA21 = ema21[ema21.length - 2];
-  const currentEMA9 = ema9[ema9.length - 1];
-  const currentEMA21 = ema21[ema21.length - 1];
-  const currentRSI = rsi[rsi.length - 1];
-  const currentVolume = volume[volume.length - 1];
+  const previousEMA9 = ema9[currentIndex - 1];
+  const previousEMA21 = ema21[currentIndex - 1];
+  const currentEMA9 = ema9[currentIndex];
+  const currentEMA21 = ema21[currentIndex];
+  const currentRSI = rsi[currentIndex];
+  const currentVolume = volume[currentIndex];
 
   // Detectar cruce alcista (BUY)
   const bullishCross = previousEMA9 <= previousEMA21 && currentEMA9 > currentEMA21;
@@ -84,8 +85,8 @@ function averageVolume(volume) {
 
 // Función para simular el backtest
 // Función para simular el backtest con nueva gestión de riesgo
-function backtest(candles, indicators) {
-  let balance = 5000; // Capital inicial en USDT
+function backtest(candles, indicators, initialBalance) {
+  let balance = initialBalance; // Capital inicial en USDT
   let position = null; // 'BUY' o 'SELL'
   let entryPrice = 0;
   let stopLossPrice = 0;
@@ -94,19 +95,12 @@ function backtest(candles, indicators) {
   const tradeLog = [];
   const commissionRate = 0.0005; // 0.05% comisión por operación
   const stopLossDistance = 0.01; // 1% del precio de entrada
-  const rewardRiskRatio = 2;
+  const rewardRiskRatio = 5;
   const riskPct = 0.02;
 
   for (let i = 1; i < candles.length; i++) { // Iniciar en 1 para tener una vela anterior
     const candle = candles[i];
-    const currentIndicators = {
-      ema9: indicators.ema9.slice(0, i + 1),
-      ema21: indicators.ema21.slice(0, i + 1),
-      rsi: indicators.rsi.slice(0, i + 1),
-      volume: indicators.volume.slice(0, i + 1),
-    };
-
-    const signal = generateSignal(i, currentIndicators);
+    const signal = generateSignal(i, indicators);
     const riskPerTrade = balance * riskPct; // 1% del balance
 
     if (signal && !position) {
@@ -271,7 +265,7 @@ async function loadDataFromJSON(filename) {
     const data = await fs.readFileSync(filePath, 'utf8');
     return JSON.parse(data);
   } catch (error) {
-    console.error('Error al cargar los datos desde JSON:', error);
+    console.error('Error al cargar los datos desde JSON.');
     return null;
   }
 }
@@ -321,8 +315,9 @@ async function saveTradesToCSV(trades, filename) {
 // Ejecutar el backtest completo
 const symbol = 'ETHUSDT';
 const interval = '15m';
-const since = new Date('2024-01-01T00:00:00Z').getTime(); // Fecha de inicio en ms
-const dataFilename = 'historical-data.json';
+const start = new Date('2024-01-01T00:00:00Z').getTime(); // Fecha de inicio en ms
+const end = new Date('2024-12-31T23:59:59Z').getTime(); // Fecha de fin en ms
+const dataFilename = 'historical-data-eth-2024.json';
 
 // Verificar si el archivo JSON existe y cargar la data
 let candles;
@@ -337,7 +332,7 @@ try {
 } catch {
   // Si falla, obtener los datos desde la API y guardarlos
   console.log('Obteniendo datos desde la API de Binance...');
-  candles = await getAllHistoricalCandles(symbol, interval, since);
+  candles = await getAllHistoricalCandles(symbol, interval, start, end);
   await saveDataToJSON(candles, dataFilename);
 }
 
@@ -345,14 +340,20 @@ console.log(`Total de velas obtenidas: ${candles.length}`);
 
 // Calcular indicadores
 const indicators = calculateIndicators(candles);
-indicators.ema9 = indicators.ema9.slice(12);
-indicators.rsi = indicators.rsi.slice(6);
-indicators.volume = indicators.volume.slice(20);
+const lengths = Object.keys(indicators).map(key => (indicators[key].length));
+const smallest = Math.min(...lengths);
+const candlesPortion = candles.slice(candles.length - smallest);
+
+// Alinear todos los arrays de datos
+Object.keys(indicators).forEach((key) => {
+  const sliceValue = indicators[key].length - smallest;
+  indicators[key] = indicators[key].slice(sliceValue);
+});
 
 // Ejecutar backtest
-const candlesPortion = candles.slice(20);
-const result = backtest(candlesPortion, indicators);
-const performance = calculatePerformanceMetrics(result.trades, 5000, result.finalBalance);
+const initialBalance = 5000;
+const result = backtest(candlesPortion, indicators, initialBalance);
+const performance = calculatePerformanceMetrics(result.trades, initialBalance, result.finalBalance);
 
 console.log('-------------------------');
 console.log(`Balance final: $${result.finalBalance.toFixed(2)}`);
@@ -361,7 +362,7 @@ console.log(`Operaciones TP: ${result.tpTrades.length}`);
 console.log(`Operaciones SL: ${result.slTrades.length}`);
 console.log(`Tasa de Ganancias: ${performance.winRate}%`);
 console.log(`Total de operaciones: ${result.trades.length}`);
-console.log(`Rendimiento total: $${performance.roi}`);
+console.log(`Rendimiento total: ${performance.roi}`);
 console.log('-------------------------');
 
 // Guardar las operaciones en un archivo CSV
