@@ -1,13 +1,21 @@
 import Bybit from '../services/bybit.js';
 
-export default async function submitOrder({ orderSize, entryPrice, signalType, takeProfit, stopLoss }) {
+export default async function submitOrder({
+  orderSize,
+  entryPrice,
+  signalType,
+  takeProfit,
+  stopLoss
+}, qtyPrecision) {
+  const qty = (orderSize / entryPrice).toFixed(qtyPrecision);
   const orderParams = {
     symbol: process.env.SYMBOL,
     category: 'linear',
-    orderType: 'Market',
-    qty: (orderSize / entryPrice).toFixed(3),
-    takeProfit: takeProfit.toFixed(3),
-    stopLoss: stopLoss.toFixed(3),
+    orderType: 'Limit',
+    qty,
+    price: entryPrice.toFixed(qtyPrecision),
+    takeProfit: takeProfit.toFixed(qtyPrecision),
+    stopLoss: stopLoss.toFixed(qtyPrecision),
     side: signalType,
   };
   return Bybit.submitOrder(orderParams);

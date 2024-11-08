@@ -13,7 +13,14 @@ const strategy = strategies[process.env.STRATEGY];
 const data = await util.getDataHistory({ symbol, interval });
 const { highList, lowList, closeList, volumeList } = data;
 
-const watchCandles = demoTrading ? Bybit.ws.update : Binance.ws.candles;
+let watchCandles, qtyPrecision;
+
+if (demoTrading) {
+  watchCandles = Bybit.ws.update;
+  qtyPrecision = await Bybit.getQtyPrecision(symbol);
+} else {
+  watchCandles = Binance.ws.candles;
+}
 
 watchCandles(symbol, interval, async (value) => {
   const candle = get(value, 'data[0]', value);
@@ -27,7 +34,7 @@ watchCandles(symbol, interval, async (value) => {
 
     if (!result) return;    
     if (demoTrading) {
-      const response = await util.submitOrder(result);
+      const response = await util.submitOrder(result, qtyPrecision);
       console.log(response);
     }
     util.sendNotification(result);

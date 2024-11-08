@@ -55,7 +55,7 @@ function emaCross({ closeList, highList, lowList, volumeList }) {
         array: lowList,
         type: 'low',
         reference: lastEMA200,
-        lastPrice
+        entryPrice
       });
       takeProfit = entryPrice + (entryPrice - stopLoss) * rewardRiskRatio;
       orderSize = getOrderSize(entryPrice, stopLoss);
@@ -75,12 +75,11 @@ function emaCross({ closeList, highList, lowList, volumeList }) {
         array: highList,
         type: 'high',
         reference: lastEMA200,
-        lastPrice
+        entryPrice
       });
       takeProfit = entryPrice - (stopLoss - entryPrice) * rewardRiskRatio;
       orderSize = getOrderSize(entryPrice, stopLoss);
     }
-    
     printIndicators({
       lastPrice,
       lastVolume,

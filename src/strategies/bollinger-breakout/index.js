@@ -53,7 +53,7 @@ function bollingerBreakout({ closeList, highList, lowList, volumeList }) {
         array: lowList,
         type: 'low',
         reference: lastBollinger.middle,
-        lastPrice
+        entryPrice
       });
       takeProfit = entryPrice + (entryPrice - stopLoss) * rewardRiskRatio;
       orderSize = getOrderSize(entryPrice, stopLoss);
@@ -74,7 +74,7 @@ function bollingerBreakout({ closeList, highList, lowList, volumeList }) {
         array: highList,
         type: 'high',
         reference: lastBollinger.middle,
-        lastPrice
+        entryPrice
       });
       takeProfit = entryPrice - (stopLoss - entryPrice) * rewardRiskRatio;
       orderSize = getOrderSize(entryPrice, stopLoss);

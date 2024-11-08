@@ -1,4 +1,5 @@
 import { RestClientV5, WebsocketClient } from 'bybit-api';
+import get from 'lodash/get.js';
 
 const demoTrading = process.env.DEMO_TRADING === 'true';
 let Bybit;
@@ -23,5 +24,13 @@ if (demoTrading) {
     }
   };
 }
+
+Bybit.getQtyPrecision = async (symbol) => {
+  const response = await Bybit.getInstrumentsInfo({ category: 'linear' });
+  const symbolInfo = response.result.list.find(item => item.symbol === symbol);
+  const qtyStep = get(symbolInfo, 'lotSizeFilter.qtyStep');
+  const precision = qtyStep.split('.')[1];
+  return precision ? precision.length : 0;
+};
 
 export default Bybit;
