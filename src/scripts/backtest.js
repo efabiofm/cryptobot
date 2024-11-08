@@ -93,8 +93,8 @@ function backtest(candles, indicators) {
   let positionSize = 0; // Tamaño de la posición en USDT
   const tradeLog = [];
   const commissionRate = 0.0005; // 0.05% comisión por operación
-  const stopLossDistance = 0.0033; // 0.33% del precio de entrada
-  const rewardRiskRatio = 1.5;
+  const stopLossDistance = 0.01; // 1% del precio de entrada
+  const rewardRiskRatio = 2;
   const riskPct = 0.02;
 
   for (let i = 1; i < candles.length; i++) { // Iniciar en 1 para tener una vela anterior
@@ -142,8 +142,6 @@ function backtest(candles, indicators) {
         timestamp: candle.timestamp,
         balance: balance.toFixed(2),
       });
-
-      // console.log(`ENTER: ${position} at ${entryPrice}, Position Size: ${positionSize.toFixed(2)}, Commission: ${entryCommission.toFixed(2)}, New Balance: ${balance.toFixed(2)}`);
     }
 
     if (position) {
@@ -159,8 +157,8 @@ function backtest(candles, indicators) {
           result = 'TP';
           exit = true;
         } else if (candle.close <= stopLossPrice) { // Stop Loss
-          profitLoss = riskPerTrade;
-          balance -= profitLoss;
+          profitLoss = -riskPerTrade;
+          balance += profitLoss;
           result = 'SL';
           exit = true;
         }
@@ -173,8 +171,8 @@ function backtest(candles, indicators) {
           result = 'TP';
           exit = true;
         } else if (candle.close >= stopLossPrice) { // Stop Loss
-          profitLoss = riskPerTrade;
-          balance -= profitLoss;
+          profitLoss = -riskPerTrade;
+          balance += profitLoss;
           result = 'SL';
           exit = true;
         }
@@ -197,8 +195,6 @@ function backtest(candles, indicators) {
           balance: balance.toFixed(2),
         });
 
-        // console.log(`EXIT: ${position} at ${exitPrice}, Profit/Loss: ${profitLoss.toFixed(2)}, Commission: ${exitCommission.toFixed(2)}, Result: ${result}, New Balance: ${balance.toFixed(2)}`);
-
         // Resetear posición
         position = null;
         entryPrice = 0;
@@ -220,7 +216,7 @@ function backtest(candles, indicators) {
   };
 }
 
-function calculatePerformanceMetrics(trades, initialBalance) {
+function calculatePerformanceMetrics(trades, initialBalance, finalBalance) {
   let totalProfit = 0;
   let totalLoss = 0;
   let maxDrawdown = 0;
@@ -231,7 +227,7 @@ function calculatePerformanceMetrics(trades, initialBalance) {
       if (trade.result === 'TP') {
         totalProfit += parseFloat(trade.profitLoss);
       } else if (trade.result === 'SL') {
-        totalLoss += Math.abs(parseFloat(trade.profitLoss));
+        totalLoss += parseFloat(trade.profitLoss);
       }
 
       // Actualizar peak y drawdown
@@ -246,14 +242,13 @@ function calculatePerformanceMetrics(trades, initialBalance) {
   });
 
   const winRate = (trades.filter(trade => trade.type === 'EXIT' && trade.result === 'TP').length / trades.filter(trade => trade.type === 'EXIT').length) * 100;
-  const netProfit = totalProfit - totalLoss;
+  const netProfit = finalBalance - initialBalance;
+  const roi = (netProfit / initialBalance) * 100;
 
   return {
-    totalProfit: totalProfit.toFixed(2),
-    totalLoss: totalLoss.toFixed(2),
     netProfit: netProfit.toFixed(2),
     winRate: winRate.toFixed(2),
-    maxDrawdown: maxDrawdown.toFixed(2)
+    roi: roi.toFixed(2) + '%'
   };
 }
 
@@ -289,9 +284,14 @@ async function saveTradesToCSV(trades, filename) {
       header: [
         { id: 'type', title: 'Type' },
         { id: 'position', title: 'Position' },
+        { id: 'positionSize', title: 'Position Size' },
         { id: 'price', title: 'Price' },
+        { id: 'stopLoss', title: 'Stop-Loss' },
+        { id: 'takeProfit', title: 'Take-Profit' },
+        { id: 'commission', title: 'Commission' },
         { id: 'timestamp', title: 'Timestamp' },
         { id: 'result', title: 'Result' },
+        { id: 'profit', title: 'Profit' },
         { id: 'balance', title: 'Balance' },
       ],
       append: false,
@@ -301,8 +301,13 @@ async function saveTradesToCSV(trades, filename) {
       type: trade.type,
       position: trade.position || '',
       price: trade.price,
-      timestamp: new Date(trade.timestamp).toISOString(),
+      positionSize: trade.positionSize,
+      stopLoss: trade.stopLoss,
+      takeProfit: trade.takeProfit,
+      commission: trade.commission,
+      timestamp: new Date(trade.timestamp).toLocaleString('es-CR', { timeZone: 'America/Costa_Rica' }),
       result: trade.result || '',
+      profit: trade.profitLoss,
       balance: trade.balance,
     }));
 
@@ -340,14 +345,24 @@ console.log(`Total de velas obtenidas: ${candles.length}`);
 
 // Calcular indicadores
 const indicators = calculateIndicators(candles);
+indicators.ema9 = indicators.ema9.slice(12);
+indicators.rsi = indicators.rsi.slice(6);
+indicators.volume = indicators.volume.slice(20);
 
 // Ejecutar backtest
-const result = backtest(candles, indicators);
+const candlesPortion = candles.slice(20);
+const result = backtest(candlesPortion, indicators);
+const performance = calculatePerformanceMetrics(result.trades, 5000, result.finalBalance);
 
+console.log('-------------------------');
 console.log(`Balance final: $${result.finalBalance.toFixed(2)}`);
-console.log(`Número de operaciones: ${result.trades.length}`);
+console.log(`Beneficio Neto: $${performance.netProfit}`);
 console.log(`Operaciones TP: ${result.tpTrades.length}`);
 console.log(`Operaciones SL: ${result.slTrades.length}`);
+console.log(`Tasa de Ganancias: ${performance.winRate}%`);
+console.log(`Total de operaciones: ${result.trades.length}`);
+console.log(`Rendimiento total: $${performance.roi}`);
+console.log('-------------------------');
 
 // Guardar las operaciones en un archivo CSV
-// await saveTradesToCSV(result.trades, 'trade-log.csv');
+await saveTradesToCSV(result.trades, 'trade-log.csv');
