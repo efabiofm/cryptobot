@@ -138,38 +138,66 @@ function backtest(candles, indicators, initialBalance) {
       });
     }
 
-    if (position) {
+    else if (position) {
       let exit = false;
       let result = '';
       let exitPrice = candle.close;
       let profitLoss = 0;
 
       if (position === 'BUY') {
-        if (candle.close >= takeProfitPrice) { // Take Profit
-          profitLoss = riskPerTrade * rewardRiskRatio;
-          balance += profitLoss;
+        if (candle.high >= takeProfitPrice && candle.low <= stopLossPrice) {
+          // Determinar cuál fue alcanzado primero basado en la apertura
+          const distanceToTP = Math.abs(candle.open - takeProfitPrice);
+          const distanceToSL = Math.abs(candle.open - stopLossPrice);
+
+          if (distanceToTP < distanceToSL) {
+            exitPrice = takeProfitPrice;
+            result = 'TP';
+          } else {
+            exitPrice = stopLossPrice;
+            result = 'SL';
+          }
+        } else if (candle.high >= takeProfitPrice) {
+          exitPrice = takeProfitPrice;
           result = 'TP';
-          exit = true;
-        } else if (candle.close <= stopLossPrice) { // Stop Loss
-          profitLoss = -riskPerTrade;
-          balance += profitLoss;
+        } else if (candle.low <= stopLossPrice) {
+          exitPrice = stopLossPrice;
           result = 'SL';
-          exit = true;
         }
       }
 
       if (position === 'SELL') {
-        if (candle.close <= takeProfitPrice) { // Take Profit
-          profitLoss = riskPerTrade * rewardRiskRatio;
-          balance += profitLoss;
+        if (candle.low <= takeProfitPrice && candle.high >= stopLossPrice) {
+          // Determinar cuál fue alcanzado primero basado en la apertura
+          const distanceToTP = Math.abs(candle.open - takeProfitPrice);
+          const distanceToSL = Math.abs(candle.open - stopLossPrice);
+
+          if (distanceToTP < distanceToSL) {
+            exitPrice = takeProfitPrice;
+            result = 'TP';
+          } else {
+            exitPrice = stopLossPrice;
+            result = 'SL';
+          }
+        } else if (candle.low <= takeProfitPrice) {
+          exitPrice = takeProfitPrice;
           result = 'TP';
-          exit = true;
-        } else if (candle.close >= stopLossPrice) { // Stop Loss
+        } else if (candle.high >= stopLossPrice) {
           profitLoss = -riskPerTrade;
-          balance += profitLoss;
           result = 'SL';
-          exit = true;
         }
+      }
+
+      if (result === 'TP') {
+        profitLoss = riskPerTrade * rewardRiskRatio;
+        balance += profitLoss;
+        exit = true;
+      }
+
+      if (result === 'SL') {
+        profitLoss = -riskPerTrade;
+        balance += profitLoss;
+        exit = true;
       }
 
       if (exit) {
@@ -280,8 +308,8 @@ async function saveTradesToCSV(trades, filename) {
         { id: 'position', title: 'Position' },
         { id: 'positionSize', title: 'Position Size' },
         { id: 'price', title: 'Price' },
-        { id: 'stopLoss', title: 'Stop-Loss' },
         { id: 'takeProfit', title: 'Take-Profit' },
+        { id: 'stopLoss', title: 'Stop-Loss' },
         { id: 'commission', title: 'Commission' },
         { id: 'timestamp', title: 'Timestamp' },
         { id: 'result', title: 'Result' },
@@ -348,6 +376,7 @@ const candlesPortion = candles.slice(candles.length - smallest);
 Object.keys(indicators).forEach((key) => {
   const sliceValue = indicators[key].length - smallest;
   indicators[key] = indicators[key].slice(sliceValue);
+  // console.log(`${key}: `, indicators[key].length);
 });
 
 // Ejecutar backtest
