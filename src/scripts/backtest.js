@@ -346,12 +346,22 @@ const interval = '15m';
 const start = new Date('2024-01-01T00:00:00Z').getTime(); // Fecha de inicio en ms
 const end = new Date('2024-12-31T23:59:59Z').getTime(); // Fecha de fin en ms
 const dataFilename = 'historical-data-eth-2024.json';
+const loadAllHistory = false;
+const storeResults = false;
 
 // Verificar si el archivo JSON existe y cargar la data
-let candles;
+let candles = [];
 try {
   // Intentar cargar los datos desde el archivo JSON
-  candles = await loadDataFromJSON(dataFilename);
+  if (loadAllHistory) {
+    const promises = ['2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024']
+      .map((year) => loadDataFromJSON(`historical-data-eth-${year}.json`));
+    const data = await Promise.all(promises);
+    candles = data.flat(1);
+  } else {
+    candles = await loadDataFromJSON(dataFilename);
+  }
+
   if (candles) {
     console.log(`Datos cargados desde ${dataFilename}`);
   } else {
@@ -395,4 +405,6 @@ console.log(`Rendimiento total: ${performance.roi}`);
 console.log('-------------------------');
 
 // Guardar las operaciones en un archivo CSV
-await saveTradesToCSV(result.trades, 'trade-log.csv');
+if (storeResults) {
+  await saveTradesToCSV(result.trades, 'trade-log.csv');
+}
