@@ -1,8 +1,9 @@
 import binance from '../services/binance.js';
-import technicalIndicators from 'technicalindicators';
+import ti from 'technicalindicators';
 import fs from 'fs';
 import path from 'path';
 import { createObjectCsvWriter } from 'csv-writer';
+import getStopLoss from '../util/get-stop-loss.js';
 
 // Función para obtener todas las velas históricas
 async function getAllHistoricalCandles(symbol, interval, startTime, endTime, limit = 1000) {
@@ -40,38 +41,64 @@ async function getAllHistoricalCandles(symbol, interval, startTime, endTime, lim
 // Función para calcular indicadores
 function calculateIndicators(candles) {
   const closePrices = candles.map(c => c.close);
+  const highPrices = candles.map(c => c.high);
+  const lowPrices = candles.map(c => c.low);
   const volume = candles.map(c => c.volume);
 
-  const ema9 = technicalIndicators.EMA.calculate({ period: 9, values: closePrices });
-  const ema21 = technicalIndicators.EMA.calculate({ period: 21, values: closePrices });
-  const rsi = technicalIndicators.RSI.calculate({ period: 14, values: closePrices });
+  const emaFast = ti.EMA.calculate({ period: 9, values: closePrices });
+  const emaSlow = ti.EMA.calculate({ period: 21, values: closePrices });
+  const rsi = ti.RSI.calculate({ period: 14, values: closePrices });
 
-  return { ema9, ema21, rsi, volume };
+  const adx = ti.ADX.calculate({
+    period: 14,
+    close: closePrices,
+    high: highPrices,
+    low: lowPrices,
+  });
+
+  const bollinger = ti.BollingerBands.calculate({
+    period: 20,
+    stdDev: 2,
+    values: closePrices,
+  });
+
+  return { emaFast, emaSlow, rsi, adx, bollinger, volume };
 }
 
 // Función para generar señales
-function generateSignal(currentIndex, indicators) {
-  const { ema9, ema21, rsi, volume } = indicators;
+function generateSignal(currentIndex, indicators, currentCandle) {
+  const { emaFast, emaSlow, rsi, adx, bollinger, volume } = indicators;
 
   // Asegurarse de que hay suficientes datos
-  if (ema9.length < 2 || ema21.length < 2 || rsi.length < 2) return null;
+  if (emaFast.length < 2 || emaSlow.length < 2 || rsi.length < 2) return null;
 
-  const previousEMA9 = ema9[currentIndex - 1];
-  const previousEMA21 = ema21[currentIndex - 1];
-  const currentEMA9 = ema9[currentIndex];
-  const currentEMA21 = ema21[currentIndex];
+  const previousEMA9 = emaFast[currentIndex - 1];
+  const previousEMA21 = emaSlow[currentIndex - 1];
+  const currentEMA9 = emaFast[currentIndex];
+  const currentEMA21 = emaSlow[currentIndex];
   const currentRSI = rsi[currentIndex];
   const currentVolume = volume[currentIndex];
 
+  const currentBollinger = bollinger[currentIndex];
+  const currentADX = adx[currentIndex].adx;
+
   // Detectar cruce alcista (BUY)
   const bullishCross = previousEMA9 <= previousEMA21 && currentEMA9 > currentEMA21;
-  if (bullishCross && currentRSI < 70 && currentVolume > averageVolume(volume)) {
+  if (
+    bullishCross
+    && currentRSI < 70
+    && currentVolume > averageVolume(volume)
+  ) {
     return 'BUY';
   }
 
   // Detectar cruce bajista (SELL)
   const bearishCross = previousEMA9 >= previousEMA21 && currentEMA9 < currentEMA21;
-  if (bearishCross && currentRSI > 30 && currentVolume > averageVolume(volume)) {
+  if (
+    bearishCross
+    && currentRSI > 30
+    && currentVolume > averageVolume(volume)
+  ) {
     return 'SELL';
   }
 
@@ -100,7 +127,7 @@ function backtest(candles, indicators, initialBalance) {
 
   for (let i = 1; i < candles.length; i++) { // Iniciar en 1 para tener una vela anterior
     const candle = candles[i];
-    const signal = generateSignal(i, indicators);
+    const signal = generateSignal(i, indicators, candle);
     const riskPerTrade = balance * riskPct; // 1% del balance
 
     if (signal && !position) {
@@ -341,11 +368,11 @@ async function saveTradesToCSV(trades, filename) {
 }
 
 // Ejecutar el backtest completo
-const symbol = 'ETHUSDT';
+const symbol = 'BTCUSDT';
 const interval = '15m';
 const start = new Date('2024-01-01T00:00:00Z').getTime(); // Fecha de inicio en ms
 const end = new Date('2024-12-31T23:59:59Z').getTime(); // Fecha de fin en ms
-const dataFilename = 'historical-data-eth-2024.json';
+const dataFilename = 'historical-data-btc-2024.json';
 const loadAllHistory = false;
 const storeResults = false;
 
