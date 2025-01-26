@@ -3,7 +3,6 @@ import ti from 'technicalindicators';
 import fs from 'fs';
 import path from 'path';
 import { createObjectCsvWriter } from 'csv-writer';
-import getStopLoss from '../util/get-stop-loss.js';
 
 // Función para obtener todas las velas históricas
 async function getAllHistoricalCandles(symbol, interval, startTime, endTime, limit = 1000) {
@@ -45,59 +44,55 @@ function calculateIndicators(candles) {
   const lowPrices = candles.map(c => c.low);
   const volume = candles.map(c => c.volume);
 
-  const emaFast = ti.EMA.calculate({ period: 9, values: closePrices });
-  const emaSlow = ti.EMA.calculate({ period: 21, values: closePrices });
-  const rsi = ti.RSI.calculate({ period: 14, values: closePrices });
+  const emaTrend = ti.EMA.calculate({ period: 50, values: closePrices });
+  const rsi = ti.RSI.calculate({ period: 3, values: closePrices });
 
   const adx = ti.ADX.calculate({
-    period: 14,
+    period: 5,
     close: closePrices,
     high: highPrices,
     low: lowPrices,
   });
-
-  const bollinger = ti.BollingerBands.calculate({
-    period: 20,
-    stdDev: 2,
-    values: closePrices,
-  });
-
-  return { emaFast, emaSlow, rsi, adx, bollinger, volume };
+  return {
+    rsi,
+    volume,
+    emaTrend,
+    adx,
+  };
 }
 
 // Función para generar señales
-function generateSignal(currentIndex, indicators, currentCandle) {
-  const { emaFast, emaSlow, rsi, adx, bollinger, volume } = indicators;
+function generateSignal(
+  currentIndex,
+  indicators,
+  currentCandle
+) {
+  const { emaTrend, rsi, adx, volume } = indicators;
 
-  // Asegurarse de que hay suficientes datos
-  if (emaFast.length < 2 || emaSlow.length < 2 || rsi.length < 2) return null;
-
-  const previousEMA9 = emaFast[currentIndex - 1];
-  const previousEMA21 = emaSlow[currentIndex - 1];
-  const currentEMA9 = emaFast[currentIndex];
-  const currentEMA21 = emaSlow[currentIndex];
+  const currentEMATrend = emaTrend[currentIndex];
   const currentRSI = rsi[currentIndex];
+  const previousRSI = rsi[currentIndex - 1];
   const currentVolume = volume[currentIndex];
 
-  const currentBollinger = bollinger[currentIndex];
+  // const currentBollinger = bollinger[currentIndex];
   const currentADX = adx[currentIndex].adx;
 
   // Detectar cruce alcista (BUY)
-  const bullishCross = previousEMA9 <= previousEMA21 && currentEMA9 > currentEMA21;
   if (
-    bullishCross
-    && currentRSI < 70
-    && currentVolume > averageVolume(volume)
+    previousRSI < 20 && currentRSI > 20
+    && currentCandle.close > currentEMATrend
+    && currentADX > 30
+    // && currentVolume > averageVolume(volume)
   ) {
     return 'BUY';
   }
 
   // Detectar cruce bajista (SELL)
-  const bearishCross = previousEMA9 >= previousEMA21 && currentEMA9 < currentEMA21;
   if (
-    bearishCross
-    && currentRSI > 30
-    && currentVolume > averageVolume(volume)
+    previousRSI > 80 && currentRSI < 80
+    && currentCandle.close > currentEMATrend
+    && currentADX > 30
+    // && currentVolume > averageVolume(volume)
   ) {
     return 'SELL';
   }
@@ -119,26 +114,29 @@ function backtest(candles, indicators, initialBalance) {
   let stopLossPrice = 0;
   let takeProfitPrice = 0;
   let positionSize = 0; // Tamaño de la posición en USDT
+
   const tradeLog = [];
-  const commissionRate = 0.0005; // 0.05% comisión por operación
-  const stopLossDistance = 0.01; // 1% del precio de entrada
-  const rewardRiskRatio = 5;
-  const riskPct = 0.02;
+  const commissionRate = 0.0000; // 0.05% comisión por operación
+  const stopLossDistance = 0.001; // 1% del precio de entrada
+  const rewardRiskRatio = 2;
+  const riskPercentage = 0.01;
 
   for (let i = 1; i < candles.length; i++) { // Iniciar en 1 para tener una vela anterior
     const candle = candles[i];
     const signal = generateSignal(i, indicators, candle);
-    const riskPerTrade = balance * riskPct; // 1% del balance
+    const riskPerTrade = balance * riskPercentage; // 1% del balance
 
     if (signal && !position) {
+      entryPrice = candle.close;
+
       // Definir el tamaño de la posición: arriesgar el 1% del balance
       // Primero, calcular el precio de stop-loss
       if (signal === 'BUY') {
-        stopLossPrice = candle.close * (1 - stopLossDistance);
-        takeProfitPrice = candle.close * (1 + stopLossDistance * rewardRiskRatio);
+        stopLossPrice = candle.low * (1 - stopLossDistance);
+        takeProfitPrice = entryPrice + (entryPrice - stopLossPrice) * rewardRiskRatio;
       } else if (signal === 'SELL') {
-        stopLossPrice = candle.close * (1 + stopLossDistance);
-        takeProfitPrice = candle.close * (1 - stopLossDistance * rewardRiskRatio);
+        stopLossPrice = candle.high * (1 + stopLossDistance);
+        takeProfitPrice = entryPrice - (stopLossPrice - entryPrice) * rewardRiskRatio;
       }
 
       const priceDifference = Math.abs(candle.close - stopLossPrice);
@@ -150,7 +148,6 @@ function backtest(candles, indicators, initialBalance) {
 
       // Registrar la entrada
       position = signal;
-      entryPrice = candle.close;
 
       tradeLog.push({
         type: 'ENTER',
@@ -210,20 +207,19 @@ function backtest(candles, indicators, initialBalance) {
           exitPrice = takeProfitPrice;
           result = 'TP';
         } else if (candle.high >= stopLossPrice) {
-          profitLoss = -riskPerTrade;
+          exitPrice = stopLossPrice;
           result = 'SL';
         }
       }
 
-      if (result === 'TP') {
-        profitLoss = riskPerTrade * rewardRiskRatio;
-        balance += profitLoss;
-        exit = true;
-      }
-
-      if (result === 'SL') {
-        profitLoss = -riskPerTrade;
-        balance += profitLoss;
+      if (result) {
+        profitLoss = Math.abs((positionSize / exitPrice) - (positionSize / entryPrice)) * exitPrice;
+        if (result === 'TP') {
+          balance += profitLoss;
+        }
+        if (result === 'SL') {
+          balance -= profitLoss;
+        }
         exit = true;
       }
 
@@ -369,56 +365,59 @@ async function saveTradesToCSV(trades, filename) {
 
 // Ejecutar el backtest completo
 const symbol = 'BTCUSDT';
-const interval = '15m';
 const start = new Date('2024-01-01T00:00:00Z').getTime(); // Fecha de inicio en ms
-const end = new Date('2024-12-31T23:59:59Z').getTime(); // Fecha de fin en ms
-const dataFilename = 'historical-data-btc-2024.json';
-const loadAllHistory = false;
-const storeResults = false;
+const end = new Date('2024-06-31T23:59:59Z').getTime(); // Fecha de fin en ms
+const dataFilename = 'historical-data-btc-5m-2024.json';
+const storeResults = true;
+
+async function getCandlesFromBinanceOrFile(symbol, interval, start, end, dataFilename) {
+  let response = [];
+  try {
+    // Intentar cargar los datos desde el archivo JSON
+    response = await loadDataFromJSON(dataFilename);
+  
+    if (response) {
+      console.log(`Datos cargados desde ${dataFilename}`);
+      return response;
+    } else {
+      throw new Error('No se pudieron cargar los datos desde el JSON.');
+    }
+  } catch {
+    // Si falla, obtener los datos desde la API y guardarlos
+    console.log('Obteniendo datos desde la API de Binance...');
+    response = await getAllHistoricalCandles(symbol, interval, start, end);
+    await saveDataToJSON(response, dataFilename);
+    return response;
+  }
+}
 
 // Verificar si el archivo JSON existe y cargar la data
-let candles = [];
-try {
-  // Intentar cargar los datos desde el archivo JSON
-  if (loadAllHistory) {
-    const promises = ['2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024']
-      .map((year) => loadDataFromJSON(`historical-data-eth-${year}.json`));
-    const data = await Promise.all(promises);
-    candles = data.flat(1);
-  } else {
-    candles = await loadDataFromJSON(dataFilename);
-  }
-
-  if (candles) {
-    console.log(`Datos cargados desde ${dataFilename}`);
-  } else {
-    throw new Error('No se pudieron cargar los datos desde el JSON.');
-  }
-} catch {
-  // Si falla, obtener los datos desde la API y guardarlos
-  console.log('Obteniendo datos desde la API de Binance...');
-  candles = await getAllHistoricalCandles(symbol, interval, start, end);
-  await saveDataToJSON(candles, dataFilename);
-}
+let candles = await getCandlesFromBinanceOrFile(symbol, '5m', start, end, dataFilename);
 
 console.log(`Total de velas obtenidas: ${candles.length}`);
 
+function sliceCandles(candles, indicators) {
+  const lengths = Object.keys(indicators).map(key => (indicators[key].length));
+  const smallest = Math.min(...lengths);
+
+  // Alinear todos los arrays de datos
+  Object.keys(indicators).forEach((key) => {
+    const sliceValue = indicators[key].length - smallest;
+    indicators[key] = indicators[key].slice(sliceValue);
+    // console.log(`${key}: `, indicators[key].length);
+  });
+
+  return candles.slice(candles.length - smallest);
+}
+
 // Calcular indicadores
 const indicators = calculateIndicators(candles);
-const lengths = Object.keys(indicators).map(key => (indicators[key].length));
-const smallest = Math.min(...lengths);
-const candlesPortion = candles.slice(candles.length - smallest);
 
-// Alinear todos los arrays de datos
-Object.keys(indicators).forEach((key) => {
-  const sliceValue = indicators[key].length - smallest;
-  indicators[key] = indicators[key].slice(sliceValue);
-  // console.log(`${key}: `, indicators[key].length);
-});
+candles = sliceCandles(candles, indicators);
 
 // Ejecutar backtest
 const initialBalance = 5000;
-const result = backtest(candlesPortion, indicators, initialBalance);
+const result = backtest(candles, indicators, initialBalance);
 const performance = calculatePerformanceMetrics(result.trades, initialBalance, result.finalBalance);
 
 console.log('-------------------------');
